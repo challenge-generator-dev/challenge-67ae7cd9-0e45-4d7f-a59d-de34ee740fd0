@@ -1,0 +1,93 @@
+spring:
+  application:
+    name: product-catalog-cache
+  datasource:
+    url: jdbc:postgresql://localhost:5432/productdb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=5m,expireAfterAccess=3m,recordStats
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: false
+
+server:
+  port: 8080
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,caches
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    caches:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
+
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+    org.springframework.cache: DEBUG
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+app:
+  cache:
+    product-catalog:
+      maximum-size: 1000
+      expire-after-write-minutes: 5
+      expire-after-access-minutes: 3
+    product-detail:
+      maximum-size: 500
+      expire-after-write-minutes: 10
+      expire-after-access-minutes: 5
+    category-products:
+      maximum-size: 200
+      expire-after-write-minutes: 3
+      expire-after-access-minutes: 1
+  performance:
+    monitoring:
+      enabled: true
+      sample-rate: 1.0
+  event:
+    invalidation:
+      enabled: true
+      async: true
